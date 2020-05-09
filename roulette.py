@@ -200,9 +200,9 @@ class RouletteGUI:
         self.selected_bet = None
 
     def spin(self):
-        if self.wheel_mask.opacity != 0:
+        if not self.bets:
             return
-        if self.wheel_rotations == 0:
+        if not self.wheel_rotations:
             self.wheel_angle = 360 * random()
 
         self.tk_wheel_image = ImageTk.PhotoImage(self.wheel_image.rotate(self.wheel_angle))
