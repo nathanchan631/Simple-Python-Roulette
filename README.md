@@ -8,4 +8,4 @@ Simple Roulette Game made with Python and Tkinter.
 - Python 3
 - Tkinter
 - PIL
-- numpy
+- NumPy
