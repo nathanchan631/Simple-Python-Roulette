@@ -101,7 +101,8 @@ class RouletteGUI:
         self.canvas.bind('<Button-1>', lambda event: self.set_current_bet())
         self.canvas.tag_bind(self.left_arrow_obj, '<Button-1>', lambda event: self.choose_chip('left'))
         self.canvas.tag_bind(self.right_arrow_obj, '<Button-1>', lambda event: self.choose_chip('right'))
-        self.canvas.tag_bind(self.wheel_mask.canvas_obj, '<Button-1>', lambda event: self.spin())
+        self.canvas.tag_bind(self.wheel_mask.canvas_obj, '<Button-1>', lambda event: self.spin() if self.bets and
+                             not self.wheel_rotations else None)
 
         # Bring to front
         for bet_zone in self.bet_zones:
@@ -200,8 +201,6 @@ class RouletteGUI:
         self.selected_bet = None
 
     def spin(self):
-        if not self.bets:
-            return
         if not self.wheel_rotations:
             self.wheel_angle = 360 * random()
 
