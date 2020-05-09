@@ -114,15 +114,12 @@ class RouletteGUI:
             self.bet_zones.append(BetZone(self.canvas, 710 + ((i - 1) % 3 * 59), 137 + ((i - 1) // 3 * 44),
                                           'img/num_collider.png'))
         for i in range(37, 40):
-            self.bet_zones.append(BetZone(self.canvas, 710 + ((i - 1) % 3 * 59), 666,
-                                          'img/num_collider.png'))
+            self.bet_zones.append(BetZone(self.canvas, 710 + ((i - 1) % 3 * 59), 666, 'img/num_collider.png'))
         for i in range(40, 43):
-            self.bet_zones.append(BetZone(self.canvas, 654, 203 + ((i - 40) % 3 * 176),
-                                          'img/dozen_collider.png'))
+            self.bet_zones.append(BetZone(self.canvas, 654, 203 + ((i - 40) % 3 * 176), 'img/dozen_collider.png'))
         self.bet_zones.append(BetZone(self.canvas, 604, 159, 'img/low_collider.png'))
         for i in range(44, 48):
-            self.bet_zones.append(BetZone(self.canvas, 604, 159 + ((i - 43) * 88),
-                                          'img/bottom_collider.png'))
+            self.bet_zones.append(BetZone(self.canvas, 604, 159 + ((i - 43) * 88), 'img/bottom_collider.png'))
         self.bet_zones.append(BetZone(self.canvas, 604, 600, 'img/high_collider.png'))
 
     def choose_chip(self, direction):
@@ -276,8 +273,7 @@ class CanvasImg:
         self._opacity = value
         img = Image.open(self.img_file)
         img = img.copy() if img.mode == 'RGBA' else img.convert('RGBA')
-        # Adjusts alpha channel of image by a factor of self.opacity
-        img.putalpha(ImageEnhance.Brightness(img.split()[3]).enhance(self.opacity))
+        img.putalpha(ImageEnhance.Brightness(img.split()[3]).enhance(self.opacity))  # Adjusts alpha channel of image
         self.img = img
 
     def fade_out(self, master):
