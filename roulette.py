@@ -3,8 +3,9 @@ Nathan Chan
 nathanchan631@gmail.com
 Python Roulette with Tkinter
 """
-from random import random
 import tkinter as tk
+from random import random
+
 from PIL import Image, ImageTk, ImageEnhance
 from numpy import linspace
 
