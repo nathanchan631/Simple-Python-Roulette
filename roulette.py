@@ -276,7 +276,7 @@ class CanvasImg:
         self._opacity = value
         img = Image.open(self.img_file)
         img = img.copy() if img.mode == 'RGBA' else img.convert('RGBA')
-        # Adjusts alpha layer of image by a factor or self.opacity
+        # Adjusts alpha channel of image by a factor of self.opacity
         img.putalpha(ImageEnhance.Brightness(img.split()[3]).enhance(self.opacity))
         self.img = img
 
