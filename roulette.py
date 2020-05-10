@@ -195,7 +195,7 @@ class RouletteGUI:
         self.tk_wheel_image = ImageTk.PhotoImage(self.wheel_image.rotate(self.wheel_angle))
         self.canvas.itemconfig(self.wheel_obj, image=self.tk_wheel_image)
 
-        self.wheel_angle += 10 - (self.wheel_rotations / 50)
+        self.wheel_angle += 10 - self.wheel_rotations / 50
         self.wheel_angle %= 360
         self.wheel_rotations += 1
 
@@ -210,8 +210,8 @@ class RouletteGUI:
 
     def get_result(self):
         # Loops through each section of the wheel, starting at 32 and going around clockwise
-        for index, num in enumerate(linspace(SECTOR_LENGTH / 2, 360 - SECTOR_LENGTH / 2, 37)):
-            if num <= self.wheel_angle < num + SECTOR_LENGTH:
+        for index, angle in enumerate(linspace(SECTOR_LENGTH / 2, 360 - SECTOR_LENGTH / 2, 37)):
+            if angle <= self.wheel_angle < angle + SECTOR_LENGTH:
                 return WHEEL_CONTENTS[index]
         return 0
 
