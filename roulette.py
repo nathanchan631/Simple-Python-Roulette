@@ -238,7 +238,6 @@ class CanvasImg:
         self.x = x
         self.y = y
         self.img_file = img_file
-
         self.img = Image.open(img_file)
         self.opacity = opacity
 
