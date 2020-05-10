@@ -33,6 +33,8 @@ BET_TYPES = {
     48: [19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36]
 }
 
+CANVAS_IMG = ['background', 'border', 'title_bar', 'arrow', 'table', 'pocket', 'left_arrow', 'right_arrow']
+
 
 class RouletteGUI:
     def __init__(self, master):
@@ -42,6 +44,7 @@ class RouletteGUI:
         self.init_balance = 100
         self.bets = []
 
+        self.canvas_img = {item: ImageTk.PhotoImage(file=f'img/{item}.png') for item in CANVAS_IMG}
         self.bet_zones = []
         self.hovered_bet = None
         self.selected_bet = None
@@ -53,40 +56,28 @@ class RouletteGUI:
         self.wheel_rotations = 0
 
         self.canvas = tk.Canvas(self.master, width=970, height=740)
+        self.canvas.place(x=0, y=0)
 
-        # Add self modifier to avoid garbage collection
-        self.background_image = ImageTk.PhotoImage(file='img/background.jpg')
-        self.border_image = ImageTk.PhotoImage(file='img/border.png')
-        self.title_bar_image = ImageTk.PhotoImage(file='img/title_bar.png')
-        self.arrow_image = ImageTk.PhotoImage(file='img/arrow.png')
-        self.table_image = ImageTk.PhotoImage(file='img/table.png')
-        self.pocket_image = ImageTk.PhotoImage(file='img/pocket.png')
-        self.left_arrow_image = ImageTk.PhotoImage(file='img/left_arrow.png')
-        self.right_arrow_image = ImageTk.PhotoImage(file='img/right_arrow.png')
+        self.init_colliders()
+        self.canvas.create_image(485, 370, image=self.canvas_img['background'])
+        self.canvas.create_image(490, 360, image=self.canvas_img['border'])
+        self.canvas.create_image(350, 55, image=self.canvas_img['title_bar'])
+        self.canvas.create_image(720, 375, image=self.canvas_img['table'])
+        self.canvas.create_image(290, 570, image=self.canvas_img['pocket'])
+        self.canvas.create_image(290, 90, image=self.canvas_img['arrow'])
 
         self.wheel_image = Image.open('img/wheel.png')
         self.tk_wheel_image = ImageTk.PhotoImage(self.wheel_image)
+        self.wheel_obj = self.canvas.create_image(290, 295, image=self.tk_wheel_image)
 
-        # Font only works if Myriad Pro is downloaded!
+        self.left_arrow_obj = self.canvas.create_image(195, 570, image=self.canvas_img['left_arrow'])
+        self.right_arrow_obj = self.canvas.create_image(385, 570, image=self.canvas_img['right_arrow'])
+
         self.submit_button = tk.Button(self.master, text='Submit Bet', command=self.create_bet, font=('Myriad-Pro', 14),
                                        fg='white', activeforeground='white', disabledforeground='white', bg='#0f662c',
                                        activebackground='#0f662c', state='disabled')
-
-        self.canvas.place(x=0, y=0)
-        self.init_colliders()
-
-        self.canvas.create_image(485, 370, image=self.background_image)
-        self.canvas.create_image(490, 360, image=self.border_image)
-        self.canvas.create_image(350, 55, image=self.title_bar_image)
-        self.canvas.create_image(720, 375, image=self.table_image)
-        self.canvas.create_image(290, 570, image=self.pocket_image)
-        self.canvas.create_image(290, 90, image=self.arrow_image)
-
-        self.wheel_obj = self.canvas.create_image(290, 295, image=self.tk_wheel_image)
-        self.left_arrow_obj = self.canvas.create_image(195, 570, image=self.left_arrow_image)
-        self.right_arrow_obj = self.canvas.create_image(385, 570, image=self.right_arrow_image)
-
         self.submit_button.place(x=220, y=645, width=140, height=35)
+
         self.balance_text = self.canvas.create_text(315, 55, text='Balance: $100.00', fill='white',
                                                     font=('Myriad-Pro', 13))
         self.winnings_text = self.canvas.create_text(530, 55, text='Round Winnings: None', fill='white',
