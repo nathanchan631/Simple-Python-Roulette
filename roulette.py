@@ -210,10 +210,10 @@ class RouletteGUI:
 
     def get_result(self):
         # Loops through each section of the wheel, starting at 32 and going around clockwise
-        for index, num in enumerate(linspace(SECTOR_LENGTH / 2, 360 + SECTOR_LENGTH / 2, 38)):
+        for index, num in enumerate(linspace(SECTOR_LENGTH / 2, 360 - SECTOR_LENGTH / 2, 37)):
             if num <= self.wheel_angle < num + SECTOR_LENGTH:
                 return WHEEL_CONTENTS[index]
-        return ValueError('Wheel angle not between 0 and 360')
+        return 0
 
     def reset(self):
         self.canvas.itemconfig(self.balance_text, text=f"Balance: ${'{:.2f}'.format(self.balance)}")
