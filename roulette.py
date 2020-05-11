@@ -253,9 +253,11 @@ class CanvasImg:
 
     @opacity.setter
     def opacity(self, value):
-        self._opacity = value
+        # Split image into RGBA color channels, then reduce brightness of alpha layer by a factor of value
         img = Image.open(self.img.filename)
-        img.putalpha(ImageEnhance.Brightness(img.split()[3]).enhance(self.opacity))  # Adjusts alpha channel of image
+        img.putalpha(ImageEnhance.Brightness(img.split()[3]).enhance(value))
+
+        self._opacity = value
         self.img = img
 
     def fade_out(self, master):
@@ -284,7 +286,7 @@ class Bet:
     def __init__(self, bet_amount, bet_type):
         self.bet_amount = bet_amount
         self.bet_type = bet_type
-        self.win_num = BET_TYPES[self.bet_type] if self.bet_type > 36 else [self.bet_type]
+        self.win_num = BET_TYPES[self.bet_type] if self.bet_type in BET_TYPES else [self.bet_type]
         self.win_amount = 36 / len(self.win_num) * self.bet_amount
 
 
