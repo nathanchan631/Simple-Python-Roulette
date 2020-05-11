@@ -11,26 +11,24 @@ from numpy import linspace
 
 SECTOR_LENGTH = 360 / 37
 
-CHIP_VALUES = [1, 5, 10, 25, 100]
-
 WHEEL_CONTENTS = [
     32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10,
     5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26, 0
 ]
 
 BET_TYPES = {
-    37: [1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31, 34],
-    38: [2, 5, 8, 11, 14, 17, 20, 23, 26, 29, 32, 35],
-    39: [3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36],
-    40: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-    41: [13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24],
-    42: [25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36],
-    43: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
-    44: [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36],
-    45: [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36],
-    46: [2, 4, 6, 8, 10, 11, 13, 15, 17, 20, 22, 24, 26, 28, 29, 31, 33, 35],
-    47: [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35],
-    48: [19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36]
+    37: [1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31, 34],  # Row 1
+    38: [2, 5, 8, 11, 14, 17, 20, 23, 26, 29, 32, 35],  # Row 2
+    39: [3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36],  # Row 3
+    40: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],  # Dozen 1
+    41: [13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24],  # Dozen 2
+    42: [25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36],  # Dozen 3
+    43: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],  # Low
+    44: [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36],  # Even
+    45: [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36],  # Red
+    46: [2, 4, 6, 8, 10, 11, 13, 15, 17, 20, 22, 24, 26, 28, 29, 31, 33, 35],  # Black
+    47: [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35],  # Odd
+    48: [19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36]  # High
 }
 
 CANVAS_IMG = ['background', 'border', 'title_bar', 'arrow', 'table', 'pocket', 'left_arrow', 'right_arrow']
@@ -44,13 +42,12 @@ class RouletteGUI:
         self.init_balance = 100
         self.bets = []
 
-        self.canvas_img = {item: ImageTk.PhotoImage(file=f'img/{item}.png') for item in CANVAS_IMG}
         self.bet_zones = []
         self.hovered_bet = None
         self.selected_bet = None
 
-        self.selected_chip = 0
-        self.chip_files = [f'img/chip{value}.png' for value in CHIP_VALUES]
+        self.chip_files = [(value, f'img/chip{value}.png') for value in [1, 5, 10, 25, 100]]
+        self.canvas_img = {item: ImageTk.PhotoImage(file=f'img/{item}.png') for item in CANVAS_IMG}
 
         self.wheel_angle = 0
         self.wheel_rotations = 0
@@ -78,26 +75,23 @@ class RouletteGUI:
                                        activebackground='#0f662c', state='disabled')
         self.submit_button.place(x=220, y=645, width=140, height=35)
 
-        self.balance_text = self.canvas.create_text(315, 55, text='Balance: $100.00', fill='white',
-                                                    font=('Myriad-Pro', 13))
-        self.winnings_text = self.canvas.create_text(530, 55, text='Round Winnings: None', fill='white',
-                                                     font=('Myriad-Pro', 13))
+        self.text_style = {'fill': 'white', 'font': ('Myriad Pro', 13)}
+        self.balance_text = self.canvas.create_text(315, 55, text='Balance: $100.00', **self.text_style)
+        self.winnings_text = self.canvas.create_text(530, 55, text='Round Winnings: None', **self.text_style)
 
         self.textbox = CanvasImg(self.canvas, 485, 370, 'img/textbox.png', opacity=0)
-        self.chip_obj = CanvasImg(self.canvas, 290, 570, self.chip_files[0])
+        self.chip_obj = CanvasImg(self.canvas, 290, 570, self.chip_files[0][1])
         self.arrow_mask = CanvasImg(self.canvas, 290, 90, 'img/arrow_mask.png', opacity=0.25)
         self.wheel_mask = CanvasImg(self.canvas, 290, 295, 'img/wheel_mask.png', opacity=0.25)
 
         self.canvas.bind('<Motion>', lambda event: self.hover())
-        self.canvas.bind('<Button-1>', lambda event: self.set_current_bet())
+        self.canvas.tag_bind('canvas_img', '<Button-1>', lambda event: self.set_current_bet())
         self.canvas.tag_bind(self.left_arrow_obj, '<Button-1>', lambda event: self.choose_chip('left'))
         self.canvas.tag_bind(self.right_arrow_obj, '<Button-1>', lambda event: self.choose_chip('right'))
         self.canvas.tag_bind(self.wheel_mask.canvas_obj, '<Button-1>', lambda event: self.spin() if self.bets and
                              not self.wheel_rotations else None)
 
-        # Bring to front
-        for bet_zone in self.bet_zones:
-            self.canvas.tag_raise(bet_zone.canvas_obj)
+        self.canvas.tag_raise('canvas_img')  # Bring all canvas images to front
 
     def init_colliders(self):
         self.bet_zones.append(BetZone(self.canvas, 770, 88, 'img/zero_collider.png'))
@@ -115,13 +109,13 @@ class RouletteGUI:
 
     def choose_chip(self, direction):
         if direction == 'left':
-            self.selected_chip -= 1 if self.selected_chip > 0 else -4
+            self.chip_files.insert(0, self.chip_files.pop())
         else:
-            self.selected_chip += 1 if self.selected_chip < 4 else -4
-        self.chip_obj.img = Image.open(self.chip_files[self.selected_chip])
+            self.chip_files.append(self.chip_files.pop(0))
+        self.chip_obj.img = Image.open(self.chip_files[0][1])
 
         # If a bet is selected and the player has sufficient money
-        if CHIP_VALUES[self.selected_chip] <= self.balance and self.selected_bet is not None:
+        if self.chip_files[0][0] <= self.balance and self.selected_bet is not None:
             self.submit_button['state'] = 'normal'
             self.submit_button['background'] = '#1c9e48'
         else:
@@ -162,15 +156,15 @@ class RouletteGUI:
                 self.hovered_bet = item_id
 
             self.selected_bet = self.hovered_bet
-            if CHIP_VALUES[self.selected_chip] <= self.balance:
+            if self.chip_files[0][0] <= self.balance:
                 self.submit_button['state'] = 'normal'
                 self.submit_button['background'] = '#1c9e48'
 
     def create_bet(self):
         bet_zone = self.bet_zones[self.selected_bet]
-        bet_zone.draw_chip(self.chip_files[self.selected_chip])
+        bet_zone.draw_chip(self.chip_obj.img.filename)
 
-        amount = CHIP_VALUES[self.selected_chip]
+        amount = self.chip_files[0][0]
         self.balance -= amount
         self.bets.append(Bet(amount, self.selected_bet))
 
@@ -200,7 +194,7 @@ class RouletteGUI:
         self.wheel_rotations += 1
 
         if self.wheel_rotations < 500:
-            self.master.after(8, self.spin)
+            self.master.after(10, self.spin)
         else:
             result = self.get_result()
             for bet in self.bets:
@@ -237,7 +231,6 @@ class CanvasImg:
         self.canvas = canvas
         self.x = x
         self.y = y
-        self.img_file = img_file
         self.img = Image.open(img_file)
         self.opacity = opacity
 
@@ -256,13 +249,12 @@ class CanvasImg:
         try:
             self.canvas.itemconfig(self.canvas_obj, image=self.tk_img)
         except AttributeError:  # Canvas object not yet defined
-            self.canvas_obj = self.canvas.create_image(self.x, self.y, image=self.tk_img)
+            self.canvas_obj = self.canvas.create_image(self.x, self.y, image=self.tk_img, tag='canvas_img')
 
     @opacity.setter
     def opacity(self, value):
         self._opacity = value
-        img = Image.open(self.img_file)
-        img = img.copy() if img.mode == 'RGBA' else img.convert('RGBA')
+        img = Image.open(self.img.filename)
         img.putalpha(ImageEnhance.Brightness(img.split()[3]).enhance(self.opacity))  # Adjusts alpha channel of image
         self.img = img
 
