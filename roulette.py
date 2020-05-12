@@ -5,6 +5,7 @@ Python Roulette with Tkinter
 """
 import tkinter as tk
 from random import random
+from dataclasses import dataclass, field
 
 from PIL import Image, ImageTk, ImageEnhance
 from numpy import linspace
@@ -85,13 +86,14 @@ class RouletteGUI:
         self.wheel_mask = CanvasImg(self.canvas, 290, 295, 'img/wheel_mask.png', opacity=0.25)
 
         self.canvas.bind('<Motion>', lambda event: self.hover())
-        self.canvas.tag_bind('canvas_img', '<Button-1>', lambda event: self.set_current_bet())
+        self.canvas.tag_bind('bet_zone', '<Button-1>', lambda event: self.set_current_bet())
         self.canvas.tag_bind(self.left_arrow_obj, '<Button-1>', lambda event: self.choose_chip('left'))
         self.canvas.tag_bind(self.right_arrow_obj, '<Button-1>', lambda event: self.choose_chip('right'))
         self.canvas.tag_bind(self.wheel_mask.canvas_obj, '<Button-1>', lambda event: self.spin() if self.bets and
                              not self.wheel_rotations else None)
 
-        self.canvas.tag_raise('canvas_img')  # Bring all canvas images to front
+        # Bring all bet zones to front
+        self.canvas.tag_raise('bet_zone')
 
     def init_colliders(self):
         self.bet_zones.append(BetZone(self.canvas, 770, 88, 'img/zero_collider.png'))
@@ -126,7 +128,7 @@ class RouletteGUI:
         item_id = self.canvas.find_withtag(tk.CURRENT)[0] - 1
 
         # Hover on a bet zone
-        if 0 <= item_id <= 48 and self.selected_bet is None and not self.bet_zones[item_id].occupied:
+        if 0 <= item_id <= 48 and self.selected_bet is None and self.bet_zones[item_id].chip is None:
             if self.hovered_bet is not None:
                 self.bet_zones[self.hovered_bet].opacity = 0
 
@@ -141,7 +143,7 @@ class RouletteGUI:
         item_id = self.canvas.find_withtag(tk.CURRENT)[0] - 1
 
         # Click on unoccupied bet zone
-        if 0 <= item_id <= 48 and not self.bet_zones[item_id].occupied:
+        if self.bet_zones[item_id].chip is None:
             if self.selected_bet is not None:
                 self.bet_zones[self.selected_bet].opacity = 0
 
@@ -178,7 +180,6 @@ class RouletteGUI:
         self.master.after(1000, lambda: self.textbox.fade_out(self.master))
 
         bet_zone.opacity = 0
-        bet_zone.occupied = True
         self.hovered_bet = None
         self.selected_bet = None
 
@@ -218,12 +219,12 @@ class RouletteGUI:
         self.wheel_mask.opacity = 0.25
 
         for bet_zone in self.bet_zones:
-            if bet_zone.occupied:
+            if bet_zone.chip is not None:
                 bet_zone.delete_chip()
 
         self.init_balance = self.balance
-        self.bets.clear()
         self.wheel_rotations = 0
+        self.bets.clear()
 
 
 class CanvasImg:
@@ -231,7 +232,10 @@ class CanvasImg:
         self.canvas = canvas
         self.x = x
         self.y = y
-        self.img = Image.open(img_file)
+        self.tk_img = ImageTk.PhotoImage(file=img_file)
+        self.canvas_obj = self.canvas.create_image(self.x, self.y, image=self.tk_img)
+
+        self._img = Image.open(img_file)
         self.opacity = opacity
 
     @property
@@ -246,10 +250,7 @@ class CanvasImg:
     def img(self, value):
         self._img = value
         self.tk_img = ImageTk.PhotoImage(self.img)
-        try:
-            self.canvas.itemconfig(self.canvas_obj, image=self.tk_img)
-        except AttributeError:  # Canvas object not yet defined
-            self.canvas_obj = self.canvas.create_image(self.x, self.y, image=self.tk_img, tag='canvas_img')
+        self.canvas.itemconfig(self.canvas_obj, image=self.tk_img)
 
     @opacity.setter
     def opacity(self, value):
@@ -269,8 +270,8 @@ class CanvasImg:
 class BetZone(CanvasImg):
     def __init__(self, canvas, x, y, img_file, opacity=0.0):
         super().__init__(canvas, x, y, img_file, opacity=opacity)
+        self.canvas.itemconfig(self.canvas_obj, tag='bet_zone')
         self.chip = None
-        self.occupied = False
 
     def draw_chip(self, chip_file):
         self.chip = CanvasImg(self.canvas, self.x, self.y, chip_file)
@@ -279,14 +280,17 @@ class BetZone(CanvasImg):
     def delete_chip(self):
         self.canvas.delete(self.chip.canvas_obj)
         self.chip = None
-        self.occupied = False
 
 
+@dataclass
 class Bet:
-    def __init__(self, bet_amount, bet_type):
-        self.bet_amount = bet_amount
-        self.bet_type = bet_type
-        self.win_num = BET_TYPES[self.bet_type] if self.bet_type in BET_TYPES else [self.bet_type]
+    bet_amount: float
+    bet_id: int
+    win_num: [int] = field(init=False)
+    win_amount: float = field(init=False)
+
+    def __post_init__(self):
+        self.win_num = BET_TYPES[self.bet_id] if self.bet_id in BET_TYPES else [self.bet_id]
         self.win_amount = 36 / len(self.win_num) * self.bet_amount
 
 
