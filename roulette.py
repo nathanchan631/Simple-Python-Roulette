@@ -4,8 +4,8 @@ nathanchan631@gmail.com
 Python Roulette with Tkinter
 """
 import tkinter as tk
-from random import random
 from dataclasses import dataclass, field
+from random import random
 from typing import List
 
 from PIL import Image, ImageTk, ImageEnhance
