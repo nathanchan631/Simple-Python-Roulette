@@ -6,6 +6,7 @@ Python Roulette with Tkinter
 import tkinter as tk
 from random import random
 from dataclasses import dataclass, field
+from typing import List
 
 from PIL import Image, ImageTk, ImageEnhance
 from numpy import linspace
@@ -286,7 +287,7 @@ class BetZone(CanvasImg):
 class Bet:
     bet_amount: float
     bet_id: int
-    win_num: [int] = field(init=False)
+    win_num: List[int] = field(init=False)
     win_amount: float = field(init=False)
 
     def __post_init__(self):
