@@ -173,7 +173,7 @@ class RouletteGUI:
 
         self.submit_button['state'] = 'disabled'
         self.submit_button['background'] = '#0f662c'
-        self.canvas.itemconfig(self.balance_text, text=f"Balance: ${'{:.2f}'.format(self.balance)}")
+        self.canvas.itemconfig(self.balance_text, text=f'Balance: ${self.balance:.2f}')
 
         self.arrow_mask.opacity = 0
         self.wheel_mask.opacity = 0
@@ -212,8 +212,8 @@ class RouletteGUI:
         return 0
 
     def reset(self):
-        self.canvas.itemconfig(self.balance_text, text=f"Balance: ${'{:.2f}'.format(self.balance)}")
-        winnings = '${:.2f}'.format(self.balance - self.init_balance)  # Rounds to two decimal places
+        self.canvas.itemconfig(self.balance_text, text=f'Balance: ${self.balance:.2f}')
+        winnings = f'${self.balance - self.init_balance:.2f}'  # Rounds to two decimal places
         self.canvas.itemconfig(self.winnings_text, text=f"Round Winnings: {winnings.replace('$-', '-$')}")
 
         self.arrow_mask.opacity = 0.25
