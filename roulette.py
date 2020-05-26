@@ -229,7 +229,7 @@ class RouletteGUI:
 
 
 class CanvasImg:
-    def __init__(self, canvas, x, y, img_file, opacity=1.0):
+    def __init__(self, canvas, x, y, img_file, *, opacity=1.0):
         self.canvas = canvas
         self.x = x
         self.y = y
@@ -269,7 +269,7 @@ class CanvasImg:
 
 
 class BetZone(CanvasImg):
-    def __init__(self, canvas, x, y, img_file, opacity=0.0):
+    def __init__(self, canvas, x, y, img_file,  *, opacity=0.0):
         super().__init__(canvas, x, y, img_file, opacity=opacity)
         self.canvas.itemconfig(self.canvas_obj, tag='bet_zone')
         self.chip = None
