@@ -4,9 +4,8 @@ nathanchan631@gmail.com
 Python Roulette with Tkinter
 """
 import tkinter as tk
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from random import random
-from typing import List
 
 from PIL import Image, ImageTk, ImageEnhance
 from numpy import linspace
@@ -15,7 +14,7 @@ SECTOR_LENGTH = 360 / 37
 
 WHEEL_CONTENTS = [
     32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10,
-    5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26, 0
+    5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26
 ]
 
 BET_TYPES = {
@@ -48,7 +47,7 @@ class RouletteGUI:
         self.hovered_bet = None
         self.selected_bet = None
 
-        self.chip_files = [(value, f'img/chip{value}.png') for value in [1, 5, 10, 25, 100]]
+        self.chip_files = [1, 5, 10, 25, 100]
         self.canvas_img = {item: ImageTk.PhotoImage(file=f'img/{item}.png') for item in CANVAS_IMG}
 
         self.wheel_angle = 0
@@ -82,7 +81,7 @@ class RouletteGUI:
         self.winnings_text = self.canvas.create_text(530, 55, text='Round Winnings: None', **self.text_style)
 
         self.textbox = CanvasImg(self.canvas, 485, 370, 'img/textbox.png', opacity=0)
-        self.chip_obj = CanvasImg(self.canvas, 290, 570, self.chip_files[0][1])
+        self.chip_obj = CanvasImg(self.canvas, 290, 570, f'img/chip{self.chip_files[0]}.png')
         self.arrow_mask = CanvasImg(self.canvas, 290, 90, 'img/arrow_mask.png', opacity=0.25)
         self.wheel_mask = CanvasImg(self.canvas, 290, 295, 'img/wheel_mask.png', opacity=0.25)
 
@@ -115,10 +114,10 @@ class RouletteGUI:
             self.chip_files.insert(0, self.chip_files.pop())
         else:
             self.chip_files.append(self.chip_files.pop(0))
-        self.chip_obj.img = Image.open(self.chip_files[0][1])
+        self.chip_obj.img = Image.open(f'img/chip{self.chip_files[0]}.png')
 
         # If a bet is selected and the player has sufficient money
-        if self.chip_files[0][0] <= self.balance and self.selected_bet is not None:
+        if self.chip_files[0] <= self.balance and self.selected_bet is not None:
             self.submit_button['state'] = 'normal'
             self.submit_button['background'] = '#1c9e48'
         else:
@@ -159,7 +158,7 @@ class RouletteGUI:
                 self.hovered_bet = item_id
 
             self.selected_bet = self.hovered_bet
-            if self.chip_files[0][0] <= self.balance:
+            if self.chip_files[0] <= self.balance:
                 self.submit_button['state'] = 'normal'
                 self.submit_button['background'] = '#1c9e48'
 
@@ -167,9 +166,8 @@ class RouletteGUI:
         bet_zone = self.bet_zones[self.selected_bet]
         bet_zone.draw_chip(self.chip_obj.img.filename)
 
-        amount = self.chip_files[0][0]
-        self.balance -= amount
-        self.bets.append(Bet(amount, self.selected_bet))
+        self.bets.append(Bet(self.chip_files[0], self.selected_bet))
+        self.balance -= self.chip_files[0]
 
         self.submit_button['state'] = 'disabled'
         self.submit_button['background'] = '#0f662c'
@@ -199,6 +197,7 @@ class RouletteGUI:
             self.master.after(10, self.spin)
         else:
             result = self.get_result()
+            print(result)
             for bet in self.bets:
                 if result in bet.win_num:
                     self.balance += bet.win_amount
@@ -287,12 +286,14 @@ class BetZone(CanvasImg):
 class Bet:
     bet_amount: float
     bet_id: int
-    win_num: List[int] = field(init=False)
-    win_amount: float = field(init=False)
 
-    def __post_init__(self):
-        self.win_num = BET_TYPES[self.bet_id] if self.bet_id in BET_TYPES else [self.bet_id]
-        self.win_amount = 36 / len(self.win_num) * self.bet_amount
+    @property
+    def win_num(self):
+        return [self.bet_id] if self.bet_id < 37 else BET_TYPES[self.bet_id]
+
+    @property
+    def win_amount(self):
+        return 36 / len(self.win_num) * self.bet_amount
 
 
 if __name__ == '__main__':
