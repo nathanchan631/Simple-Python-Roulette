@@ -45,7 +45,7 @@ BET_ZONES = {
 CANVAS_IMG = {
     'background': (485, 370), 'border': (490, 360), 'title_bar': (350, 55), 'arrow': (290, 90),
     'table': (720, 375), 'pocket': (290, 570), 'left_arrow': (195, 570), 'right_arrow': (385, 570),
-    'textbox': (485, 370), 'arrow_mask': (290, 90), 'wheel_mask': (290, 295)
+    'textbox': (485, 370, 0), 'arrow_mask': (290, 90, 0.25), 'wheel_mask': (290, 295, 0.25)
 }
 
 
@@ -68,11 +68,10 @@ class RouletteGUI:
 
         # Render canvas, create canvas objects
         self.canvas.place(x=0, y=0)
-        self.bet_zones = [BetZone(self.canvas, coords[0], coords[1], f'img/{key}_collider.png')
+        self.bet_zones = [BetZone(self.canvas, f'img/{key}_collider.png', *coords)
                           for key, coord_list in BET_ZONES.items() for coords in coord_list]
-        self.canvas_img = {key: CanvasImg(self.canvas, coords[0], coords[1], f'img/{key}.png')
-                           for key, coords in CANVAS_IMG.items()}
-        self.chip_obj = CanvasImg(self.canvas, 290, 570, f'img/chip{self.chips[0]}.png')
+        self.canvas_img = {key: CanvasImg(self.canvas, f'img/{key}.png', *data) for key, data in CANVAS_IMG.items()}
+        self.chip_obj = CanvasImg(self.canvas, 'img/chip1.png', 290, 570)
 
         # Wheel objects
         self.wheel_image = Image.open('img/wheel.png')
@@ -99,11 +98,6 @@ class RouletteGUI:
                              lambda event: self.choose_chip('right'))
         self.canvas.tag_bind(self.canvas_img['wheel_mask'].canvas_obj, '<Button-1>',
                              lambda event: self.spin() if self.bets and not self.wheel_rotations else None)
-
-        # Set opacity of images
-        self.canvas_img['textbox'].opacity = 0
-        self.canvas_img['arrow_mask'].opacity = 0.25
-        self.canvas_img['wheel_mask'].opacity = 0.25
 
         # Bring to front
         self.canvas.tag_raise('bet_zone')
@@ -228,7 +222,7 @@ class RouletteGUI:
 
 
 class CanvasImg:
-    def __init__(self, canvas, x, y, img_file, *, opacity=1.0):
+    def __init__(self, canvas, img_file, x, y, opacity=1.0):
         self.canvas = canvas
         self.x = x
         self.y = y
@@ -268,13 +262,13 @@ class CanvasImg:
 
 
 class BetZone(CanvasImg):
-    def __init__(self, canvas, x, y, img_file, *, opacity=0.0):
-        super().__init__(canvas, x, y, img_file, opacity=opacity)
+    def __init__(self, canvas, img_file, x, y, opacity=0):
+        super().__init__(canvas, img_file, x, y, opacity=opacity)
         self.canvas.itemconfig(self.canvas_obj, tag='bet_zone')
         self.chip = None
 
     def draw_chip(self, chip_file):
-        self.chip = CanvasImg(self.canvas, self.x, self.y, chip_file)
+        self.chip = CanvasImg(self.canvas, chip_file, self.x, self.y)
         self.chip.img = self.chip.img.resize((40, 40), Image.ANTIALIAS)
 
     def delete_chip(self):
