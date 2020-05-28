@@ -32,12 +32,15 @@ BET_TYPES = [
     [19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36]  # High
 ]
 
-BET_ZONES = [(770, 88, 'zero')] + \
-            [(710 + (i % 3 * 59), 137 + (i // 3 * 44), 'num') for i in range(36)] + \
-            [(710 + (i % 3 * 59), 666, 'num') for i in range(3)] + \
-            [(654, 203 + (i % 3 * 176), 'dozen') for i in range(3)] + \
-            [(604, 247 + (i * 88), 'bottom') for i in range(4)] + \
-            [(604, 159, 'low'), (604, 600, 'high')]
+BET_ZONES = {
+    'zero': [(770, 88)],
+    'num': [(710 + (i % 3 * 59), 137 + (i // 3 * 44)) for i in range(36)],
+    'column': [(710 + (i % 3 * 59), 666) for i in range(3)],
+    'dozen': [(654, 203 + (i % 3 * 176)) for i in range(3)],
+    'bottom': [(604, 247 + (i * 88)) for i in range(4)],
+    'low': [(604, 159)],
+    'high': [(604, 600)]
+}
 
 CANVAS_IMG = {
     'background': (485, 370), 'border': (490, 360), 'title_bar': (350, 55), 'arrow': (290, 90),
@@ -65,8 +68,8 @@ class RouletteGUI:
 
         # Render canvas, create canvas objects
         self.canvas.place(x=0, y=0)
-        self.bet_zones = [BetZone(self.canvas, bet_zone[0], bet_zone[1], f'img/{bet_zone[2]}_collider.png')
-                          for bet_zone in BET_ZONES]
+        self.bet_zones = [BetZone(self.canvas, coords[0], coords[1], f'img/{key}_collider.png')
+                          for key, coord_list in BET_ZONES.items() for coords in coord_list]
         self.canvas_img = {key: CanvasImg(self.canvas, coords[0], coords[1], f'img/{key}.png')
                            for key, coords in CANVAS_IMG.items()}
         self.chip_obj = CanvasImg(self.canvas, 290, 570, f'img/chip{self.chips[0]}.png')
