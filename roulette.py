@@ -33,11 +33,11 @@ BET_TYPES = [
 ]
 
 BET_ZONES = [(770, 88, 'zero')] + \
-    [(710 + (i % 3 * 59), 137 + (i // 3 * 44), 'num') for i in range(36)] + \
-    [(710 + (i % 3 * 59), 666, 'num') for i in range(3)] + \
-    [(654, 203 + (i % 3 * 176), 'dozen') for i in range(3)] + \
-    [(604, 247 + (i * 88), 'bottom') for i in range(4)] + \
-    [(604, 159, 'low'), (604, 600, 'high')]
+            [(710 + (i % 3 * 59), 137 + (i // 3 * 44), 'num') for i in range(36)] + \
+            [(710 + (i % 3 * 59), 666, 'num') for i in range(3)] + \
+            [(654, 203 + (i % 3 * 176), 'dozen') for i in range(3)] + \
+            [(604, 247 + (i * 88), 'bottom') for i in range(4)] + \
+            [(604, 159, 'low'), (604, 600, 'high')]
 
 CANVAS_IMG = {
     'background': (485, 370), 'border': (490, 360), 'title_bar': (350, 55), 'arrow': (290, 90),
@@ -265,7 +265,7 @@ class CanvasImg:
 
 
 class BetZone(CanvasImg):
-    def __init__(self, canvas, x, y, img_file,  *, opacity=0.0):
+    def __init__(self, canvas, x, y, img_file, *, opacity=0.0):
         super().__init__(canvas, x, y, img_file, opacity=opacity)
         self.canvas.itemconfig(self.canvas_obj, tag='bet_zone')
         self.chip = None
@@ -286,7 +286,7 @@ class Bet:
 
     @property
     def win_num(self):
-        return [self.bet_id] if self.bet_id < 37 else BET_TYPES[self.bet_id-37]
+        return [self.bet_id] if self.bet_id < 37 else BET_TYPES[self.bet_id - 37]
 
     @property
     def win_amount(self):
