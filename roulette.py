@@ -32,11 +32,19 @@ BET_TYPES = {
     48: [19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36]  # High
 }
 
-IMG_DATA = {
+CANVAS_IMG = {
     'background': (485, 370), 'border': (490, 360), 'title_bar': (350, 55), 'arrow': (290, 90),
     'table': (720, 375), 'pocket': (290, 570), 'left_arrow': (195, 570), 'right_arrow': (385, 570),
     'textbox': (485, 370), 'arrow_mask': (290, 90), 'wheel_mask': (290, 295)
 }
+
+BET_ZONES = [(770, 88, 'zero')] + \
+    [(710 + (i % 3 * 59), 137 + (i // 3 * 44), 'num') for i in range(36)] + \
+    [(710 + (i % 3 * 59), 666, 'num') for i in range(3)] + \
+    [(654, 203 + (i % 3 * 176), 'dozen') for i in range(3)] + \
+    [(604, 159, 'low')] + \
+    [(604, 247 + (i * 88), 'bottom') for i in range(4)] + \
+    [(604, 600, 'high')]
 
 
 class RouletteGUI:
@@ -49,19 +57,19 @@ class RouletteGUI:
         self.bets = []
 
         self.chips = [1, 5, 10, 25, 100]
-        self.canvas_img = {key: CanvasImg(self.canvas, coords[0], coords[1], f'img/{key}.png')
-                           for key, coords in IMG_DATA.items()}
 
-        self.bet_zones = []
         self.hovered_bet = None
         self.selected_bet = None
 
         self.wheel_angle = 0
         self.wheel_rotations = 0
 
-        # Render canvas, create additional objects
+        # Render canvas, create canvas objects
         self.canvas.place(x=0, y=0)
-        self.create_bet_zones()
+        self.bet_zones = [BetZone(self.canvas, bet_zone[0], bet_zone[1], f'img/{bet_zone[2]}_collider.png')
+                          for bet_zone in BET_ZONES]
+        self.canvas_img = {key: CanvasImg(self.canvas, coords[0], coords[1], f'img/{key}.png')
+                           for key, coords in CANVAS_IMG.items()}
         self.chip_obj = CanvasImg(self.canvas, 290, 570, f'img/chip{self.chips[0]}.png')
 
         # Wheel objects
@@ -100,20 +108,6 @@ class RouletteGUI:
         self.canvas.tag_raise(self.canvas_img['wheel_mask'].canvas_obj)
         self.canvas.tag_raise(self.canvas_img['textbox'].canvas_obj)
 
-    def create_bet_zones(self):
-        self.bet_zones.append(BetZone(self.canvas, 770, 88, 'img/zero_collider.png'))
-        for i in range(1, 37):
-            self.bet_zones.append(BetZone(self.canvas, 710 + ((i - 1) % 3 * 59), 137 + ((i - 1) // 3 * 44),
-                                          'img/num_collider.png'))
-        for i in range(37, 40):
-            self.bet_zones.append(BetZone(self.canvas, 710 + ((i - 1) % 3 * 59), 666, 'img/num_collider.png'))
-        for i in range(40, 43):
-            self.bet_zones.append(BetZone(self.canvas, 654, 203 + ((i - 40) % 3 * 176), 'img/dozen_collider.png'))
-        self.bet_zones.append(BetZone(self.canvas, 604, 159, 'img/low_collider.png'))
-        for i in range(44, 48):
-            self.bet_zones.append(BetZone(self.canvas, 604, 159 + ((i - 43) * 88), 'img/bottom_collider.png'))
-        self.bet_zones.append(BetZone(self.canvas, 604, 600, 'img/high_collider.png'))
-
     def choose_chip(self, direction):
         if direction == 'left':
             self.chips.insert(0, self.chips.pop())
@@ -130,7 +124,7 @@ class RouletteGUI:
             self.submit_button['background'] = '#0f662c'
 
     def hover(self):
-        item_id = self.canvas.find_withtag(tk.CURRENT)[0] - 12
+        item_id = self.canvas.find_withtag(tk.CURRENT)[0] - 1
 
         # Hover on a bet zone
         if 0 <= item_id <= 48 and self.selected_bet is None and self.bet_zones[item_id].chip is None:
@@ -145,7 +139,7 @@ class RouletteGUI:
             self.bet_zones[self.hovered_bet].opacity = 0
 
     def set_current_bet(self):
-        item_id = self.canvas.find_withtag(tk.CURRENT)[0] - 12
+        item_id = self.canvas.find_withtag(tk.CURRENT)[0] - 1
 
         # Click on unoccupied bet zone
         if self.bet_zones[item_id].chip is None:
@@ -202,7 +196,6 @@ class RouletteGUI:
             self.master.after(10, self.spin)
         else:
             result = self.get_result()
-            print(result)
             for bet in self.bets:
                 if result in bet.win_num:
                     self.balance += bet.win_amount
