@@ -35,8 +35,8 @@ BET_TYPES = [
 BET_ZONES = {
     'zero': [(770, 88)],
     'num': [(710 + (i % 3 * 59), 137 + (i // 3 * 44)) for i in range(36)],
-    'column': [(710 + (i % 3 * 59), 666) for i in range(3)],
-    'dozen': [(654, 203 + (i % 3 * 176)) for i in range(3)],
+    'column': [(710 + (i * 59), 666) for i in range(3)],
+    'dozen': [(654, 203 + (i * 176)) for i in range(3)],
     'bottom': [(604, 247 + (i * 88)) for i in range(4)],
     'low': [(604, 159)],
     'high': [(604, 600)]
