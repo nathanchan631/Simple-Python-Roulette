@@ -14,13 +14,13 @@ from numpy import linspace
 SECTOR_LENGTH = 360 / 37
 
 # Starts at 32 and moves clockwise (does not include 0)
-WHEEL_CONTENTS = (
+WHEEL_CONTENTS = [
     32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10,
     5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26
-)
+]
 
 # Non-single-number bets and their winning numbers
-BET_TYPES = (
+BET_TYPES = [
     range(1, 35, 3),  # Column 1
     range(2, 36, 3),  # Column 2
     range(3, 37, 3),  # Column 3
@@ -33,7 +33,7 @@ BET_TYPES = (
     range(1, 36, 2),  # Odd
     range(1, 19),  # Low
     range(19, 37)  # High
-)
+]
 
 # Bet zone instances data (format: img_name: [(x1, y1), (x2, y2), (x3, y3), ...]
 BET_ZONES = {
@@ -211,7 +211,10 @@ class RouletteGUI:
         self.wheel_rotations += 1
 
         # Call the method again if it has run less than 500 times.
-        self.master.after(10, self.spin) if self.wheel_rotations < 500 else self.reset()
+        if self.wheel_rotations < 500:
+            self.master.after(10, self.spin)
+        else:
+            self.reset()
 
     def get_result(self):
         """Returns the spin result as an int."""
@@ -264,7 +267,7 @@ class CanvasImg:
 
         img (PIL.PngImagePlugin.PngImageFile) - corresponding PIL Image object
         tk_img (PIL.ImageTk.PhotoImage) - corresponding PIL ImageTk object
-        canvas_id (int) - the id of the image on the object's canvas
+        canvas_id (int) - the id of the image on the canvas
     """
 
     def __init__(self, canvas, img_file, x, y, opacity=1.0):
