@@ -284,7 +284,7 @@ class CanvasImg:
         """
         Returns a PIL.PngImagePlugin.PngImageFile.
 
-        Gets or set the PIL image. Invoking the setter will also update the tk_img, the canvas_obj,
+        Gets or sets the PIL image. Invoking the setter will also update the tk_img, the canvas_obj,
         and redraw the image on the canvas.
         """
         return self._img
