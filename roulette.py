@@ -14,13 +14,13 @@ from numpy import linspace
 SECTOR_LENGTH = 360 / 37
 
 # Starts at 32 and moves clockwise (does not include 0)
-WHEEL_CONTENTS = [
+WHEEL_CONTENTS = (
     32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10,
     5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26
-]
+)
 
 # Non-single-number bets and their winning numbers
-BET_TYPES = [
+BET_TYPES = (
     range(1, 35, 3),  # Column 1
     range(2, 36, 3),  # Column 2
     range(3, 37, 3),  # Column 3
@@ -33,7 +33,7 @@ BET_TYPES = [
     range(1, 36, 2),  # Odd
     range(1, 19),  # Low
     range(19, 37)  # High
-]
+)
 
 # Bet zone instances data (format: img_name: [(x1, y1), (x2, y2), (x3, y3), ...]
 BET_ZONES = {
@@ -100,18 +100,18 @@ class RouletteGUI:
         # Events
         self.canvas.bind('<Motion>', lambda event: self.hover())
         self.canvas.tag_bind('bet_zone', '<Button-1>', lambda event: self.set_current_bet())
-        self.canvas.tag_bind(self.canvas_img['left_arrow'].canvas_obj, '<Button-1>',
+        self.canvas.tag_bind(self.canvas_img['left_arrow'].canvas_id, '<Button-1>',
                              lambda event: self.choose_chip('left'))
-        self.canvas.tag_bind(self.canvas_img['right_arrow'].canvas_obj, '<Button-1>',
+        self.canvas.tag_bind(self.canvas_img['right_arrow'].canvas_id, '<Button-1>',
                              lambda event: self.choose_chip('right'))
-        self.canvas.tag_bind(self.canvas_img['wheel_mask'].canvas_obj, '<Button-1>',
+        self.canvas.tag_bind(self.canvas_img['wheel_mask'].canvas_id, '<Button-1>',
                              lambda event: self.spin() if self.bets and not self.wheel_rotations
                              else None)
 
         # Bring to front
         self.canvas.tag_raise('bet_zone')
-        self.canvas.tag_raise(self.canvas_img['wheel_mask'].canvas_obj)
-        self.canvas.tag_raise(self.canvas_img['textbox'].canvas_obj)
+        self.canvas.tag_raise(self.canvas_img['wheel_mask'].canvas_id)
+        self.canvas.tag_raise(self.canvas_img['textbox'].canvas_id)
 
     def choose_chip(self, direction):
         """Set the selected chip when one of the arrows is clicked."""
@@ -133,15 +133,15 @@ class RouletteGUI:
     def hover(self):
         """Set the hovered bet when a bet zone is hovered on."""
         # Get hovered bet zone
-        bet_id = self.canvas.find_withtag(tk.CURRENT)[0] - 1
+        obj_id = self.canvas.find_withtag(tk.CURRENT)[0] - 1
 
         # Hover on a bet zone
-        if 0 <= bet_id <= 48 and self.selected_bet is None and self.bet_zones[bet_id].chip is None:
+        if 0 <= obj_id <= 48 and self.selected_bet is None and self.bet_zones[obj_id].chip is None:
             if self.hovered_bet is not None:
                 self.bet_zones[self.hovered_bet].opacity = 0.0
 
-            self.bet_zones[bet_id].opacity = 0.25
-            self.hovered_bet = bet_id
+            self.bet_zones[obj_id].opacity = 0.25
+            self.hovered_bet = obj_id
 
         # Mouse outside of bet table image
         elif self.selected_bet is None and self.hovered_bet is not None:
@@ -150,22 +150,22 @@ class RouletteGUI:
     def set_current_bet(self):
         """Set the current bet when a bet zone is clicked."""
         # Get clicked bet zone
-        bet_id = self.canvas.find_withtag(tk.CURRENT)[0] - 1
+        obj_id = self.canvas.find_withtag(tk.CURRENT)[0] - 1
 
         # Click on unoccupied bet zone
-        if self.bet_zones[bet_id].chip is None:
+        if self.bet_zones[obj_id].chip is None:
             if self.selected_bet is not None:
                 self.bet_zones[self.selected_bet].opacity = 0.0
 
                 # Click on a zone that is already selected
-                if self.selected_bet == bet_id:
+                if self.selected_bet == obj_id:
                     self.selected_bet = None
                     self.submit_button['state'] = 'disabled'
                     self.submit_button['background'] = '#0f662c'
                     return
 
-                self.bet_zones[bet_id].opacity = 0.25
-                self.hovered_bet = bet_id
+                self.bet_zones[obj_id].opacity = 0.25
+                self.hovered_bet = obj_id
 
             self.selected_bet = self.hovered_bet
 
@@ -264,7 +264,7 @@ class CanvasImg:
 
         img (PIL.PngImagePlugin.PngImageFile) - corresponding PIL Image object
         tk_img (PIL.ImageTk.PhotoImage) - corresponding PIL ImageTk object
-        canvas_obj (int) - the id of the image on the object's canvas
+        canvas_id (int) - the id of the image on the object's canvas
     """
 
     def __init__(self, canvas, img_file, x, y, opacity=1.0):
@@ -272,7 +272,7 @@ class CanvasImg:
         self.x = x
         self.y = y
         self.tk_img = ImageTk.PhotoImage(file=img_file)
-        self.canvas_obj = self.canvas.create_image(self.x, self.y, image=self.tk_img)
+        self.canvas_id = self.canvas.create_image(self.x, self.y, image=self.tk_img)
 
         self._img = Image.open(img_file)
         self.opacity = opacity
@@ -282,8 +282,8 @@ class CanvasImg:
         """
         Returns a PIL.PngImagePlugin.PngImageFile.
 
-        Gets or sets the PIL image. Invoking the setter will also update the tk_img, the canvas_obj,
-        and redraw the image on the canvas.
+        Gets or sets the PIL image. Invoking the setter will also update the PhotoImage and redraw
+        the image on the canvas.
         """
         return self._img
 
@@ -301,7 +301,7 @@ class CanvasImg:
     def img(self, value):
         self._img = value
         self.tk_img = ImageTk.PhotoImage(self.img)
-        self.canvas.itemconfig(self.canvas_obj, image=self.tk_img)
+        self.canvas.itemconfig(self.canvas_id, image=self.tk_img)
 
     @opacity.setter
     def opacity(self, value):
@@ -336,7 +336,7 @@ class BetZone(CanvasImg):
 
     def __init__(self, canvas, img_file, x, y, opacity=0.0):
         super().__init__(canvas, img_file, x, y, opacity=opacity)
-        self.canvas.itemconfig(self.canvas_obj, tag='bet_zone')
+        self.canvas.itemconfig(self.canvas_id, tag='bet_zone')
         self.chip = None
 
     def draw_chip(self, chip_file):
@@ -346,7 +346,7 @@ class BetZone(CanvasImg):
 
     def delete_chip(self):
         """Removes the chip from the bet zone."""
-        self.canvas.delete(self.chip.canvas_obj)
+        self.canvas.delete(self.chip.canvas_id)
         self.chip = None
 
 
@@ -357,7 +357,7 @@ class Bet:
 
     Attributes:
         bet_amount (float): the bet amount
-        bet_id (int): the bet id that is used for lookup in the BET_TYPES list
+        bet_id (int): the bet id used for lookup in the BET_TYPES tuple
     """
 
     bet_amount: float
