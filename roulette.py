@@ -21,18 +21,18 @@ WHEEL_CONTENTS = [
 
 # Non-single-number bets and their winning numbers
 BET_TYPES = [
-    [1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31, 34],  # Column 1
-    [2, 5, 8, 11, 14, 17, 20, 23, 26, 29, 32, 35],  # Column 2
-    [3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36],  # Column 3
-    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],  # Dozen 1
-    [13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24],  # Dozen 2
-    [25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36],  # Dozen 3
-    [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36],  # Even
-    [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36],  # Red
-    [2, 4, 6, 8, 10, 11, 13, 15, 17, 20, 22, 24, 26, 28, 29, 31, 33, 35],  # Black
-    [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35],  # Odd
-    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],  # Low
-    [19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36]  # High
+    range(1, 35, 3),  # Column 1
+    range(2, 36, 3),  # Column 2
+    range(3, 37, 3),  # Column 3
+    range(1, 13),  # Dozen 1
+    range(13, 25),  # Dozen 2
+    range(25, 37),  # Dozen 3
+    range(2, 37, 2),  # Even
+    WHEEL_CONTENTS[::2],  # Red
+    WHEEL_CONTENTS[1::2],  # Black
+    range(1, 36, 2),  # Odd
+    range(1, 19),  # Low
+    range(19, 37)  # High
 ]
 
 # Bet zone instances data (format: img_name: [(x1, y1), (x2, y2), (x3, y3), ...]
@@ -46,7 +46,7 @@ BET_ZONES = {
     'high': [(604, 600)]  # Bet on 19-36
 }
 
-# Canvas img instances data (format: img_name: (x, y, opacity=1))
+# Canvas img instances data (format: img_name: (x, y, opacity=1.0))
 CANVAS_IMG = {
     'background': (485, 370), 'border': (490, 360), 'title_bar': (350, 55), 'arrow': (290, 90),
     'table': (720, 375), 'pocket': (290, 570), 'left_arrow': (195, 570), 'right_arrow': (385, 570),
@@ -59,8 +59,8 @@ class RouletteGUI:
         self.master = master
         self.canvas = tk.Canvas(self.master, width=970, height=740)
 
-        self.balance = 100
-        self.init_balance = 100
+        self.balance = 100.0
+        self.init_balance = 100.0
         self.bets = []
 
         self.chips = [1, 5, 10, 25, 100]
@@ -68,7 +68,7 @@ class RouletteGUI:
         self.hovered_bet = None
         self.selected_bet = None
 
-        self.wheel_angle = 0
+        self.wheel_angle = 0.0
         self.wheel_rotations = 0
 
         # Render the canvas and create canvas objects
@@ -138,14 +138,14 @@ class RouletteGUI:
         # Hover on a bet zone
         if 0 <= bet_id <= 48 and self.selected_bet is None and self.bet_zones[bet_id].chip is None:
             if self.hovered_bet is not None:
-                self.bet_zones[self.hovered_bet].opacity = 0
+                self.bet_zones[self.hovered_bet].opacity = 0.0
 
             self.bet_zones[bet_id].opacity = 0.25
             self.hovered_bet = bet_id
 
         # Mouse outside of bet table image
         elif self.selected_bet is None and self.hovered_bet is not None:
-            self.bet_zones[self.hovered_bet].opacity = 0
+            self.bet_zones[self.hovered_bet].opacity = 0.0
 
     def set_current_bet(self):
         """Set the current bet when a bet zone is clicked."""
@@ -155,7 +155,7 @@ class RouletteGUI:
         # Click on unoccupied bet zone
         if self.bet_zones[bet_id].chip is None:
             if self.selected_bet is not None:
-                self.bet_zones[self.selected_bet].opacity = 0
+                self.bet_zones[self.selected_bet].opacity = 0.0
 
                 # Click on a zone that is already selected
                 if self.selected_bet == bet_id:
@@ -176,11 +176,11 @@ class RouletteGUI:
 
     def create_bet(self):
         """Create a bet object if the submit button is clicked."""
-        # Create chip object on selected bet zone
+        # Create a chip object on the selected bet zone.
         bet_zone = self.bet_zones[self.selected_bet]
         bet_zone.draw_chip(self.chip_obj.img.filename)
 
-        # Create bet object and subtract from player balance
+        # Create a bet object and subtract from the player's balance.
         self.bets.append(Bet(self.chips[0], self.selected_bet))
         self.balance -= self.chips[0]
 
@@ -188,18 +188,18 @@ class RouletteGUI:
         self.submit_button['background'] = '#0f662c'
         self.canvas.itemconfig(self.balance_text, text=f'Balance: ${self.balance:.2f}')
 
-        self.canvas_img['arrow_mask'].opacity = 0
-        self.canvas_img['wheel_mask'].opacity = 0
-        self.canvas_img['textbox'].opacity = 1
+        self.canvas_img['arrow_mask'].opacity = 0.0
+        self.canvas_img['wheel_mask'].opacity = 0.0
+        self.canvas_img['textbox'].opacity = 1.0
         self.master.after(1000, lambda: self.canvas_img['textbox'].fade_out(self.master))
 
-        bet_zone.opacity = 0
+        bet_zone.opacity = 0.0
         self.hovered_bet = None
         self.selected_bet = None
 
     def spin(self):
         """Recursively spins the wheel."""
-        # Run this on the first time the method is called
+        # Run this on the first time the method is called.
         if not self.wheel_rotations:
             self.wheel_angle = 360 * random()
 
@@ -210,16 +210,13 @@ class RouletteGUI:
         self.wheel_angle %= 360
         self.wheel_rotations += 1
 
-        # Call the method again if it has run less than 500 times
-        if self.wheel_rotations < 500:
-            self.master.after(10, self.spin)
-        else:
-            self.reset()
+        # Call the method again if it has run less than 500 times.
+        self.master.after(10, self.spin) if self.wheel_rotations < 500 else self.reset()
 
     def get_result(self):
         """Returns the spin result as an int."""
         # Loop through each section of the wheel excluding 0, starting at 32 and moving clockwise.
-        # Return when the wheel angle is between the lower and upper bounds of the current section
+        # Return when the wheel angle is between the lower and upper bounds of the current section.
         for index, angle in enumerate(linspace(SECTOR_LENGTH / 2, 360 - SECTOR_LENGTH / 2, 37)):
             if angle <= self.wheel_angle < angle + SECTOR_LENGTH:
                 return WHEEL_CONTENTS[index]
@@ -255,14 +252,15 @@ class CanvasImg:
     Creates canvas images and stores its related objects and properties.
 
     Note:
-        The image must be a .png and must have a RGBA color format.
+        The image must bd in a RGBA color format. If it is not, you can run PIL.Image.convert to
+        convert it.
 
     Attributes:
         canvas (tkinter.Canvas) - the canvas the image should be rendered on
-        img_file (string) - the path to the image file
+        img_file (str) - the path to the image file
         x (int) - the x coordinate of the image
         y (int) - the y coordinate of the image
-        opacity(float) - the opacity of the image (default: 0.0)
+        opacity (float) - the opacity of the image (default: 0.0)
 
         img (PIL.PngImagePlugin.PngImageFile) - corresponding PIL Image object
         tk_img (PIL.ImageTk.PhotoImage) - corresponding PIL ImageTk object
@@ -307,13 +305,11 @@ class CanvasImg:
 
     @opacity.setter
     def opacity(self, value):
+        # Open a copy of the image with opacity 1.0. Then split the image into individual RGBA
+        # color channels and reduce the brightness of the alpha layer by a factor of value.
+        assert self.img.mode == 'RGBA'
         img = Image.open(self.img.filename)
-        try:
-            # Split the image into individual RGBA color channels.
-            # Then reduce the brightness of alpha layer by a factor of value
-            img.putalpha(ImageEnhance.Brightness(img.split()[3]).enhance(value))
-        except IndexError:
-            raise TypeError("The image is not in an RGBA color format")
+        img.putalpha(ImageEnhance.Brightness(img.split()[3]).enhance(value))
 
         self._opacity = value
         self.img = img
@@ -332,10 +328,10 @@ class BetZone(CanvasImg):
     This class invokes the CanvasImg constructor during initialization.
 
     Note:
-        The default opacity value for this class is 0.0 instead of the inherited value of 1.0.
+        The default opacity value for this class is 0.0 instead of the inherited default of 1.0.
 
     Additional Attributes:
-        chip (CanvasImg) - A CanvasImg object that stores a chip image on the bet zone
+        chip (CanvasImg) - A CanvasImg object that is placed on the bet zone
     """
 
     def __init__(self, canvas, img_file, x, y, opacity=0.0):
@@ -369,12 +365,12 @@ class Bet:
 
     @property
     def win_num(self):
-        """Returns a list of the winning numbers for the bet. No setter."""
+        """Returns an iterable of the winning numbers for the bet. Read only."""
         return [self.bet_id] if self.bet_id < 37 else BET_TYPES[self.bet_id - 37]
 
     @property
     def win_amount(self):
-        """Returns the win amount for the bet as a float. No setter."""
+        """Returns the win amount for the bet as a float. Read only."""
         return 36 / len(self.win_num) * self.bet_amount
 
 
