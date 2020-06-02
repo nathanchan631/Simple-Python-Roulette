@@ -80,9 +80,9 @@ class RouletteGUI:
         self.chip_obj = CanvasImg(self.canvas, 'img/chip1.png', 290, 570)
 
         # Wheel objects
-        self.wheel_image = Image.open('img/wheel.png')
-        self.tk_wheel_image = ImageTk.PhotoImage(self.wheel_image)
-        self.wheel_obj = self.canvas.create_image(290, 295, image=self.tk_wheel_image)
+        self.wheel_img = Image.open('img/wheel.png')
+        self.tk_wheel = ImageTk.PhotoImage(self.wheel_img)
+        self.wheel_id = self.canvas.create_image(290, 295, image=self.tk_wheel)
 
         # Submit bet button
         self.submit_button = tk.Button(self.master, text='Submit Bet', command=self.create_bet,
@@ -191,7 +191,7 @@ class RouletteGUI:
         self.canvas_img['arrow_mask'].opacity = 0.0
         self.canvas_img['wheel_mask'].opacity = 0.0
         self.canvas_img['textbox'].opacity = 1.0
-        self.master.after(1000, lambda: self.canvas_img['textbox'].fade_out(self.master))
+        self.master.after(1000, self.canvas_img['textbox'].fade_out)
 
         bet_zone.opacity = 0.0
         self.hovered_bet = None
@@ -203,24 +203,24 @@ class RouletteGUI:
         if not self.wheel_rotations:
             self.wheel_angle = 360 * random()
 
-        self.tk_wheel_image = ImageTk.PhotoImage(self.wheel_image.rotate(self.wheel_angle))
-        self.canvas.itemconfig(self.wheel_obj, image=self.tk_wheel_image)
+        self.tk_wheel = ImageTk.PhotoImage(self.wheel_img.rotate(self.wheel_angle))
+        self.canvas.itemconfig(self.wheel_id, image=self.tk_wheel)
 
-        self.wheel_angle += 10 - self.wheel_rotations / 50
-        self.wheel_angle %= 360
+        self.wheel_angle += 5 - self.wheel_rotations / 100
         self.wheel_rotations += 1
 
         # Call the method again if it has run less than 500 times.
         if self.wheel_rotations < 500:
-            self.master.after(10, self.spin)
+            self.master.after_idle(self.spin)
         else:
+            self.wheel_angle %= 360
             self.reset()
 
     def get_result(self):
         """Returns the spin result as an int."""
         # Loop through each section of the wheel excluding 0, starting at 32 and moving clockwise.
         # Return when the wheel angle is between the lower and upper bounds of the current section.
-        for index, angle in enumerate(linspace(SECTOR_LENGTH / 2, 360 - SECTOR_LENGTH / 2, 37)):
+        for index, angle in enumerate(linspace(SECTOR_LENGTH / 2, 360 - SECTOR_LENGTH * 3 / 2, 36)):
             if angle <= self.wheel_angle < angle + SECTOR_LENGTH:
                 return WHEEL_CONTENTS[index]
         return 0
@@ -255,7 +255,7 @@ class CanvasImg:
     Creates canvas images and stores its related objects and properties.
 
     Note:
-        The image must bd in a RGBA color format. If it is not, you can run PIL.Image.convert to
+        The image must be in a RGBA color format. If it is not, you can run PIL.Image.convert to
         convert it.
 
     Attributes:
@@ -274,8 +274,9 @@ class CanvasImg:
         self.canvas = canvas
         self.x = x
         self.y = y
-        self.tk_img = ImageTk.PhotoImage(file=img_file)
-        self.canvas_id = self.canvas.create_image(self.x, self.y, image=self.tk_img)
+
+        self.tk_img = None
+        self.canvas_id = None
 
         self._img = Image.open(img_file)
         self.opacity = opacity
@@ -285,7 +286,7 @@ class CanvasImg:
         """
         Returns a PIL.PngImagePlugin.PngImageFile.
 
-        Gets or sets the PIL image. Invoking the setter will also update the PhotoImage and redraw
+        Gets or sets the PIL image. Invoking the setter will also update self.tk_img and redraw
         the image on the canvas.
         """
         return self._img
@@ -303,25 +304,28 @@ class CanvasImg:
     @img.setter
     def img(self, value):
         self._img = value
-        self.tk_img = ImageTk.PhotoImage(self.img)
-        self.canvas.itemconfig(self.canvas_id, image=self.tk_img)
+        self.tk_img = ImageTk.PhotoImage(self._img)
+        if self.canvas_id is None:
+            self.canvas_id = self.canvas.create_image(self.x, self.y, image=self.tk_img)
+        else:
+            self.canvas.itemconfig(self.canvas_id, image=self.tk_img)
 
     @opacity.setter
     def opacity(self, value):
         # Open a copy of the image with opacity 1.0. Then split the image into individual RGBA
         # color channels and reduce the brightness of the alpha layer by a factor of value.
-        assert self.img.mode == 'RGBA'
+        assert self._img.mode == 'RGBA', 'Image must have a RGBA color format.'
         img = Image.open(self.img.filename)
         img.putalpha(ImageEnhance.Brightness(img.split()[3]).enhance(value))
 
         self._opacity = value
         self.img = img
 
-    def fade_out(self, master):
+    def fade_out(self):
         """Fade out the image on the canvas."""
         if self.opacity >= 0.02:
             self.opacity -= 0.02
-            master.after(30, lambda: self.fade_out(master))
+            self.canvas.master.after(30, self.fade_out)
 
 
 class BetZone(CanvasImg):
@@ -360,7 +364,7 @@ class Bet:
 
     Attributes:
         bet_amount (float): the bet amount
-        bet_id (int): the bet id used for lookup in the BET_TYPES tuple
+        bet_id (int): the bet id used for lookup in the BET_TYPES list
     """
 
     bet_amount: float
