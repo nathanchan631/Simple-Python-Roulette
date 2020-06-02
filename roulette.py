@@ -315,7 +315,7 @@ class CanvasImg:
         # Open a copy of the image with opacity 1.0. Then split the image into individual RGBA
         # color channels and reduce the brightness of the alpha layer by a factor of value.
         assert self._img.mode == 'RGBA', 'Image must have a RGBA color format.'
-        img = Image.open(self.img.filename)
+        img = Image.open(self._img.filename)
         img.putalpha(ImageEnhance.Brightness(img.split()[3]).enhance(value))
 
         self._opacity = value
