@@ -372,8 +372,8 @@ class Bet:
 
     @property
     def win_num(self):
-        """Returns an iterable of the winning numbers for the bet. Read only."""
-        return [self.bet_id] if self.bet_id < 37 else BET_TYPES[self.bet_id - 37]
+        """Returns a list of the winning numbers for the bet. Read only."""
+        return [self.bet_id] if self.bet_id < 37 else list(BET_TYPES[self.bet_id - 37])
 
     @property
     def win_amount(self):
