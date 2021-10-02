@@ -4,19 +4,18 @@ nathanchan631@gmail.com
 Python Roulette with Tkinter
 """
 import tkinter as tk
-from dataclasses import dataclass
-from random import random
-
 from PIL import Image, ImageTk, ImageEnhance
+from dataclasses import dataclass
 from numpy import linspace
+from random import random
 
 # Arc measure of each section of the wheel in degrees
 SECTOR_LENGTH = 360 / 37
 
-# Starts at 32 and moves clockwise (does not include 0)
+# Starts at 32 and moves counter-clockwise (does not include 0)
 WHEEL_CONTENTS = [
-    32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10,
-    5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26
+    26, 3, 35, 12, 28, 7, 29, 18, 22, 9, 31, 14, 20, 1, 33, 16, 24, 5,
+    10, 23, 8, 30, 11, 36, 13, 27, 6, 34, 17, 25, 2, 21, 4, 19, 15, 32
 ]
 
 # Non-single-number bets and their winning numbers
@@ -48,9 +47,9 @@ BET_ZONES = {
 
 # Canvas img instances data (format: img_name: (x, y, opacity=1.0))
 CANVAS_IMG = {
-    'background': (485, 370), 'border': (490, 360), 'title_bar': (350, 55), 'arrow': (290, 90),
-    'table': (720, 375), 'pocket': (290, 570), 'left_arrow': (195, 570), 'right_arrow': (385, 570),
-    'textbox': (485, 370, 0.0), 'arrow_mask': (290, 90, 0.25), 'wheel_mask': (290, 295, 0.25)
+    'background': (485, 370), 'border': (490, 360), 'title_bar': (350, 55),
+    'table': (720, 375), 'pocket': (290, 570), 'left_arrow': (195, 570),
+    'right_arrow': (385, 570), 'textbox': (485, 370, 0.0), 'wheel_mask': (290, 290, 0.25)
 }
 
 
@@ -69,7 +68,8 @@ class RouletteGUI:
         self.selected_bet = None
 
         self.wheel_angle = 0.0
-        self.wheel_rotations = 0
+        self.ball_angle = 0.0
+        self.rotations = 0
 
         # Render the canvas and create canvas objects
         self.canvas.place(x=0, y=0)
@@ -82,7 +82,12 @@ class RouletteGUI:
         # Wheel objects
         self.wheel_img = Image.open('img/wheel.png')
         self.tk_wheel = ImageTk.PhotoImage(self.wheel_img)
-        self.wheel_id = self.canvas.create_image(290, 295, image=self.tk_wheel)
+        self.wheel_id = self.canvas.create_image(290, 290, image=self.tk_wheel)
+
+        # Roulette Ball
+        self.ball_img = Image.open('img/ball_wheel.png')
+        self.tk_ball = ImageTk.PhotoImage(self.ball_img)
+        self.ball_id = self.canvas.create_image(290, 290, image=self.tk_ball)
 
         # Submit bet button
         self.submit_button = tk.Button(self.master, text='Submit Bet', command=self.create_bet,
@@ -105,8 +110,7 @@ class RouletteGUI:
         self.canvas.tag_bind(self.canvas_img['right_arrow'].canvas_id, '<Button-1>',
                              lambda event: self.choose_chip('right'))
         self.canvas.tag_bind(self.canvas_img['wheel_mask'].canvas_id, '<Button-1>',
-                             lambda event: self.spin() if self.bets and not self.wheel_rotations
-                             else None)
+                             lambda event: self.spin() if self.bets and not self.rotations else None)
 
         # Bring to front
         self.canvas.tag_raise('bet_zone')
@@ -188,7 +192,6 @@ class RouletteGUI:
         self.submit_button['background'] = '#0f662c'
         self.canvas.itemconfig(self.balance_text, text=f'Balance: ${self.balance:.2f}')
 
-        self.canvas_img['arrow_mask'].opacity = 0.0
         self.canvas_img['wheel_mask'].opacity = 0.0
         self.canvas_img['textbox'].opacity = 1.0
         self.master.after(1000, self.canvas_img['textbox'].fade_out)
@@ -198,30 +201,45 @@ class RouletteGUI:
         self.selected_bet = None
 
     def spin(self):
-        """Recursively spins the wheel."""
+        """Recursively spins the wheel and ball."""
         # Run this on the first time the method is called.
-        if not self.wheel_rotations:
+        if not self.rotations:
             self.wheel_angle = 360 * random()
 
         self.tk_wheel = ImageTk.PhotoImage(self.wheel_img.rotate(self.wheel_angle))
         self.canvas.itemconfig(self.wheel_id, image=self.tk_wheel)
 
-        self.wheel_angle += 5 - self.wheel_rotations / 100
-        self.wheel_rotations += 1
+        self.tk_ball = ImageTk.PhotoImage(self.ball_img.rotate(self.ball_angle))
+        self.canvas.itemconfig(self.ball_id, image=self.tk_ball)
+
+        self.wheel_angle += 5 - self.rotations / 100
+        if self.rotations < 322:
+            self.ball_angle -= 4.5 - self.rotations / 80
+        else:
+            self.ball_angle += 5 - self.rotations / 100
+
+        self.rotations += 1
 
         # Call the method again if it has run less than 500 times.
-        if self.wheel_rotations < 500:
+        if self.rotations < 500:
             self.master.after_idle(self.spin)
         else:
             self.wheel_angle %= 360
+            self.ball_angle %= 360
             self.reset()
 
     def get_result(self):
         """Returns the spin result as an int."""
-        # Loop through each section of the wheel excluding 0, starting at 32 and moving clockwise.
-        # Return when the wheel angle is between the lower and upper bounds of the current section.
+
+        # Calculate the ball's rotation relative to the wheel
+        self.ball_angle -= self.wheel_angle
+        if self.ball_angle < 0:
+            self.ball_angle += 360
+
+        # Loop through each section of the wheel excluding 0, starting at 26 and moving counter-clockwise.
+        # Return when the angle is between the lower and upper bounds of the current section.
         for index, angle in enumerate(linspace(SECTOR_LENGTH / 2, 360 - SECTOR_LENGTH * 3 / 2, 36)):
-            if angle <= self.wheel_angle < angle + SECTOR_LENGTH:
+            if angle <= self.ball_angle < angle + SECTOR_LENGTH:
                 return WHEEL_CONTENTS[index]
         return 0
 
@@ -237,7 +255,6 @@ class RouletteGUI:
         winnings = f'${self.balance - self.init_balance:.2f}'.replace('$-', '-$')
         self.canvas.itemconfig(self.winnings_text, text=f"Round Winnings: {winnings}")
 
-        self.canvas_img['arrow_mask'].opacity = 0.25
         self.canvas_img['wheel_mask'].opacity = 0.25
 
         # Clear the bet table
@@ -246,7 +263,7 @@ class RouletteGUI:
                 bet_zone.delete_chip()
 
         self.init_balance = self.balance
-        self.wheel_rotations = 0
+        self.rotations = 0
         self.bets.clear()
 
 
