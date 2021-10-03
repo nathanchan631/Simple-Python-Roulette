@@ -212,10 +212,8 @@ class RouletteGUI:
         self.wheel_angle += 5 - self.rotations / 100
         if self.rotations < 322:
             self.ball_angle -= 4.5 - self.rotations / 80
-        else:
-            # Keep the ball in the middle of a wheel slot and rotate it with the wheel
-            self.ball_angle -= (self.ball_angle - self.wheel_angle) % SECTOR_LENGTH
-            self.ball_angle += 5 - self.rotations / 100
+        else:  # Calculate the angle between the ball and the middle of the slot
+            self.ball_angle += SECTOR_LENGTH - (self.ball_angle - self.wheel_angle) % SECTOR_LENGTH
 
         # Render the rotated images on the canvas
         self.tk_wheel = ImageTk.PhotoImage(self.wheel_img.rotate(self.wheel_angle))
