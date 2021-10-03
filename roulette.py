@@ -212,7 +212,9 @@ class RouletteGUI:
         self.wheel_angle += 5 - self.rotations / 100
         if self.rotations < 322:
             self.ball_angle -= 4.5 - self.rotations / 80
-        else:  # Make the ball rotate with the wheel in a "slot".
+        else:
+            # Keep the ball in the middle of a wheel slot and rotate it with the wheel
+            self.ball_angle -= (self.ball_angle - self.wheel_angle) % SECTOR_LENGTH
             self.ball_angle += 5 - self.rotations / 100
 
         # Render the rotated images on the canvas
@@ -250,7 +252,6 @@ class RouletteGUI:
         """Reset the board after a spin and get ready for the player to place bets."""
         # Set the player's money
         result = self.get_result()
-        print(result)
         for bet in self.bets:
             if result in bet.win_num:
                 self.balance += bet.win_amount
