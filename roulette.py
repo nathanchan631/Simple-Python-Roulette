@@ -4,10 +4,11 @@ nathanchan631@gmail.com
 Python Roulette with Tkinter
 """
 import tkinter as tk
-from PIL import Image, ImageTk, ImageEnhance
 from dataclasses import dataclass
-from numpy import linspace
 from random import random
+
+from PIL import Image, ImageTk, ImageEnhance
+from numpy import linspace
 
 # Arc measure of each section of the wheel in degrees
 SECTOR_LENGTH = 360 / 37
@@ -110,7 +111,8 @@ class RouletteGUI:
         self.canvas.tag_bind(self.canvas_img['right_arrow'].canvas_id, '<Button-1>',
                              lambda event: self.choose_chip('right'))
         self.canvas.tag_bind(self.canvas_img['wheel_mask'].canvas_id, '<Button-1>',
-                             lambda event: self.spin() if self.bets and not self.rotations else None)
+                             lambda event: self.spin() if self.bets and not self.rotations
+                             else None)
 
         # Bring to front
         self.canvas.tag_raise('bet_zone')
@@ -206,22 +208,23 @@ class RouletteGUI:
         if not self.rotations:
             self.wheel_angle = 360 * random()
 
+        # Rotate the wheel and ball.
+        self.wheel_angle += 5 - self.rotations / 100
+        if self.rotations < 322:
+            self.ball_angle -= 4.5 - self.rotations / 80
+        else:  # Make the ball rotate with the wheel in a "slot".
+            self.ball_angle += 5 - self.rotations / 100
+
+        # Render the rotated images on the canvas
         self.tk_wheel = ImageTk.PhotoImage(self.wheel_img.rotate(self.wheel_angle))
         self.canvas.itemconfig(self.wheel_id, image=self.tk_wheel)
 
         self.tk_ball = ImageTk.PhotoImage(self.ball_img.rotate(self.ball_angle))
         self.canvas.itemconfig(self.ball_id, image=self.tk_ball)
 
-        self.wheel_angle += 5 - self.rotations / 100
-        if self.rotations < 322:
-            self.ball_angle -= 4.5 - self.rotations / 80
-        else:
-            self.ball_angle += 5 - self.rotations / 100
-
-        self.rotations += 1
-
         # Call the method again if it has run less than 500 times.
         if self.rotations < 500:
+            self.rotations += 1
             self.master.after_idle(self.spin)
         else:
             self.wheel_angle %= 360
@@ -231,12 +234,12 @@ class RouletteGUI:
     def get_result(self):
         """Returns the spin result as an int."""
 
-        # Calculate the ball's rotation relative to the wheel
+        # Calculate the ball's rotation relative to the wheel.
         self.ball_angle -= self.wheel_angle
         if self.ball_angle < 0:
             self.ball_angle += 360
 
-        # Loop through each section of the wheel excluding 0, starting at 26 and moving counter-clockwise.
+        # Loop through each sector of the wheel (not 0) starting at 26 and moving counter-clockwise.
         # Return when the angle is between the lower and upper bounds of the current section.
         for index, angle in enumerate(linspace(SECTOR_LENGTH / 2, 360 - SECTOR_LENGTH * 3 / 2, 36)):
             if angle <= self.ball_angle < angle + SECTOR_LENGTH:
