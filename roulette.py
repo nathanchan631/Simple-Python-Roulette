@@ -283,7 +283,7 @@ class CanvasImg:
         img_file (str) - the path to the image file
         x (int) - the x coordinate of the image
         y (int) - the y coordinate of the image
-        opacity (float) - the opacity of the image (default: 0.0)
+        opacity (float) - the opacity of the image (default: 1.0)
 
         img (PIL.PngImagePlugin.PngImageFile) - corresponding PIL Image object
         tk_img (PIL.ImageTk.PhotoImage) - corresponding PIL ImageTk object
@@ -311,6 +311,15 @@ class CanvasImg:
         """
         return self._img
 
+    @img.setter
+    def img(self, value):
+        self._img = value
+        self.tk_img = ImageTk.PhotoImage(self._img)
+        if self.canvas_id is None:
+            self.canvas_id = self.canvas.create_image(self.x, self.y, image=self.tk_img)
+        else:
+            self.canvas.itemconfig(self.canvas_id, image=self.tk_img)
+
     @property
     def opacity(self):
         """
@@ -320,15 +329,6 @@ class CanvasImg:
         img setter.
         """
         return self._opacity
-
-    @img.setter
-    def img(self, value):
-        self._img = value
-        self.tk_img = ImageTk.PhotoImage(self._img)
-        if self.canvas_id is None:
-            self.canvas_id = self.canvas.create_image(self.x, self.y, image=self.tk_img)
-        else:
-            self.canvas.itemconfig(self.canvas_id, image=self.tk_img)
 
     @opacity.setter
     def opacity(self, value):
