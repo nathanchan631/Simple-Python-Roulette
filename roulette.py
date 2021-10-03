@@ -28,8 +28,8 @@ BET_TYPES = [
     range(13, 25),  # Dozen 2
     range(25, 37),  # Dozen 3
     range(2, 37, 2),  # Even
-    WHEEL_CONTENTS[::2],  # Red
-    WHEEL_CONTENTS[1::2],  # Black
+    WHEEL_CONTENTS[1::2],  # Red
+    WHEEL_CONTENTS[::2],  # Black
     range(1, 36, 2),  # Odd
     range(1, 19),  # Low
     range(19, 37)  # High
@@ -250,6 +250,7 @@ class RouletteGUI:
         """Reset the board after a spin and get ready for the player to place bets."""
         # Set the player's money
         result = self.get_result()
+        print(result)
         for bet in self.bets:
             if result in bet.win_num:
                 self.balance += bet.win_amount
